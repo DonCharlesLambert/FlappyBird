@@ -18,6 +18,8 @@ class Game extends JFrame implements KeyListener {
     JPanel panel;
     FlappyBird bird;
     ArrayList<Pillar> pillars;
+    JLabel[] scoreDisplay = new JLabel[5];
+    int score = 0;
     static int WIDTH = 288;
     static int HEIGHT = 512;
 
@@ -31,14 +33,17 @@ class Game extends JFrame implements KeyListener {
 
         panel = new JPanel(null);
         add(panel);
+
+        JLabel base = createImage("base.png", 0, 400);
+        scoreDisplay[0] = createImage("0.png", WIDTH/2, 10);
+
         bird = new FlappyBird("red");
         panel.add(bird.getBird());
+
         pillars = new ArrayList<>();
         pillars.add(createPillar(panel));
 
         //JLabel info = createImage("message.png", 44, 0, panel);
-        JLabel base = createImage("base.png", 0, 400);
-        panel.setComponentZOrder(base, 0);
 
         JLabel bg = createImage("background-day.png", 0, 0);
         gameLoop();
@@ -50,15 +55,14 @@ class Game extends JFrame implements KeyListener {
             animatePillars();
             pillarCycle();
             checkCollision();
+            showScore();
             Thread.sleep(50);
             pack();
         }
-        JLabel gameOver = createImage("gameover.png", 44, 250);
-        panel.setComponentZOrder(gameOver, 0);
-        pack();
+        gameOver();
     }
 
-    public void keyPressed(KeyEvent e) {
+    public void keyPressed(KeyEvent e){
         bird.jump();
     }
 
@@ -74,6 +78,15 @@ class Game extends JFrame implements KeyListener {
         JLabel gameOver = createImage("gameover.png", 44, 250);
         panel.setComponentZOrder(gameOver, 0);
         pack();
+    }
+
+    private void showScore(){
+        if (score / 10 > 0){
+            scoreDisplay[1] = createImage(score / 10 + ".png", WIDTH/2 - 20, 10);
+            panel.setComponentZOrder(scoreDisplay[1], 1);
+        }
+        scoreDisplay[0].setIcon(new ImageIcon("img/" + score % 10 + ".png"));
+        panel.setComponentZOrder(scoreDisplay[0], 1);
     }
 
     private JLabel createImage(String filename, int x, int y) {
@@ -100,6 +113,7 @@ class Game extends JFrame implements KeyListener {
         }
         if (add){
             pillars.add(createPillar(panel));
+            score++;
         }
     }
 
@@ -117,7 +131,7 @@ class Game extends JFrame implements KeyListener {
     private void checkCollision(){
         if(pillars.size() > 1) {
             Pillar p = pillars.get(pillars.size() - 2);
-            if (bird.getPosition() - 7 < p.getPosition() && p.getPosition() < bird.getPosition() + 7) {
+            if (bird.getPosition() - 14 < p.getPosition() && p.getPosition() < bird.getPosition() + 14) {
                 if (bird.getAltitude() > p.getBottomHeight() || bird.getAltitude() < p.getTopHeight()) {
                     bird.die();
                 }
@@ -131,7 +145,7 @@ class Pillar{
     private JLabel bottomPillar;
     private int[] location;
     private int SPEED = -5;
-    private int SPACE = 450;
+    private int SPACE = 400;
 
     Pillar(int x, int y){
         this.location = new int[]{x, y - SPACE, y};
