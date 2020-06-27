@@ -37,21 +37,25 @@ class Game extends JFrame implements KeyListener {
         pillars.add(createPillar(panel));
 
         //JLabel info = createImage("message.png", 44, 0, panel);
-        JLabel base = createImage("base.png", 0, 400, panel);
+        JLabel base = createImage("base.png", 0, 400);
         panel.setComponentZOrder(base, 0);
-        JLabel bg = createImage("background-day.png", 0, 0, panel);
 
+        JLabel bg = createImage("background-day.png", 0, 0);
         gameLoop();
     }
 
     private void gameLoop() throws InterruptedException{
         while(bird.isAlive()){
             bird.animate();
-            animatePillars(pillars);
-            pillarCycle(pillars, panel);
+            animatePillars();
+            pillarCycle();
+            checkCollision();
             Thread.sleep(50);
             pack();
         }
+        JLabel gameOver = createImage("gameover.png", 44, 250);
+        panel.setComponentZOrder(gameOver, 0);
+        pack();
     }
 
     public void keyPressed(KeyEvent e) {
@@ -59,14 +63,20 @@ class Game extends JFrame implements KeyListener {
     }
 
     public void keyTyped(KeyEvent e) {
-        System.out.println("keyTyped");
+        //System.out.println("keyTyped");
     }
 
     public void keyReleased(KeyEvent e) {
-        System.out.println("keyReleased");
+        //System.out.println("keyReleased");
     }
 
-    private static JLabel createImage(String filename, int x, int y, Container panel) {
+    private void gameOver(){
+        JLabel gameOver = createImage("gameover.png", 44, 250);
+        panel.setComponentZOrder(gameOver, 0);
+        pack();
+    }
+
+    private JLabel createImage(String filename, int x, int y) {
         JLabel img = new JLabel(new ImageIcon("img/" + filename));
         Dimension size = img.getPreferredSize();
         img.setBounds(x, y, size.width, size.height);
@@ -75,13 +85,13 @@ class Game extends JFrame implements KeyListener {
     }
 
     //createPillars
-    private void animatePillars(ArrayList<Pillar> pillars){
+    private void animatePillars(){
         for(Pillar pillar: pillars){
             pillar.animate();
         }
     }
 
-    private void pillarCycle(ArrayList<Pillar> pillars, JPanel panel){
+    private void pillarCycle(){
         boolean add = false;
         for(Pillar p: pillars){
             if(139 < p.getPosition() && p.getPosition() < 144){
@@ -94,7 +104,7 @@ class Game extends JFrame implements KeyListener {
     }
 
     private Pillar createPillar(JPanel panel){
-        Pillar p = new Pillar(WIDTH, (int)(Math.random() * 300 + 100));
+        Pillar p = new Pillar(WIDTH, (int)(Math.random() * 200 + 200));
         JLabel t = p.getTopPillar();
         JLabel b = p.getBottomPillar();
         panel.add(t);
@@ -103,14 +113,25 @@ class Game extends JFrame implements KeyListener {
         panel.setComponentZOrder(b, 1);
         return p;
     }
+
+    private void checkCollision(){
+        if(pillars.size() > 1) {
+            Pillar p = pillars.get(pillars.size() - 2);
+            if (bird.getPosition() - 7 < p.getPosition() && p.getPosition() < bird.getPosition() + 7) {
+                if (bird.getAltitude() > p.getBottomHeight() || bird.getAltitude() < p.getTopHeight()) {
+                    bird.die();
+                }
+            }
+        }
+    }
 }
 
 class Pillar{
     private JLabel topPillar;
     private JLabel bottomPillar;
     private int[] location;
-    private int SPEED = 10;
-    private int SPACE = 400;
+    private int SPEED = -5;
+    private int SPACE = 450;
 
     Pillar(int x, int y){
         this.location = new int[]{x, y - SPACE, y};
@@ -130,8 +151,15 @@ class Pillar{
         return location[0];
     }
 
+    public int getTopHeight(){
+        return location[1] + topPillar.getPreferredSize().height;
+    }
+    public int getBottomHeight(){
+        return location[2];
+    }
+
     public void animate(){
-        move(-5);
+        move(SPEED);
     }
 
     private void move(int x){
@@ -172,12 +200,22 @@ class FlappyBird{
         return bird;
     }
 
+    public int getPosition(){
+        return location[0];
+    }
+
+    public int getAltitude(){
+        return location[1];
+    }
+
     public void animate(){
         if(jumpFrames > 0) {
             move(0, JUMP);
             jumpFrames--;
-        }else{
+        }else if(getAltitude() <= 370){
             move(0, GRAVITY);
+        }else{
+            die();
         }
         nextImage();
     }
@@ -188,6 +226,10 @@ class FlappyBird{
 
     public boolean isAlive(){
         return alive;
+    }
+
+    public void die(){
+        alive = false;
     }
 
     private void nextImage(){
