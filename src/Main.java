@@ -24,54 +24,77 @@ class Game extends JFrame implements KeyListener {
     static int HEIGHT = 512;
 
     Game() throws InterruptedException{
+        //sets size of the window
         setPreferredSize(new Dimension(WIDTH, HEIGHT));
+
+        //displays the window
         setVisible(true);
+
         //terminates the program when the close button on the window is pressed
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+
+        //sets the window to listen to key presses
         addKeyListener(this);
 
-
+        //adds a panel to the window which is where the images are drawn
         panel = new JPanel(null);
         add(panel);
 
+        //draws the ground
         JLabel base = createImage("base.png", 0, 400);
+
+        //draws the number 0
         scoreDisplay[0] = createImage("0.png", WIDTH/2, 10);
 
+        // draws the bird
         bird = new FlappyBird("red");
         panel.add(bird.getBird());
 
+        //creates the pillar list and adds the first pillar
         pillars = new ArrayList<>();
         pillars.add(createPillar(panel));
 
-        //JLabel info = createImage("message.png", 44, 0, panel);
-
+        //adds the background
         JLabel bg = createImage("background-day.png", 0, 0);
+
+        //starts the game
         gameLoop();
     }
 
     private void gameLoop() throws InterruptedException{
         while(bird.isAlive()){
+            //animates the bird
             bird.animate();
+
+            //moves the pillars
             animatePillars();
+
+            //conditionally creates new pillars and increments the score
             pillarCycle();
+
+            //checks if the bird has collided with the pipes
             checkCollision();
+
+            //changes the score that is displayed
             showScore();
+
+            //sleeps for 50ms
             Thread.sleep(50);
             pack();
         }
-        gameOver();
+
+        //gameOver();
     }
 
+    //called when a key is pressed
     public void keyPressed(KeyEvent e){
         bird.jump();
     }
 
     public void keyTyped(KeyEvent e) {
-        //System.out.println("keyTyped");
     }
 
     public void keyReleased(KeyEvent e) {
-        //System.out.println("keyReleased");
     }
 
     private void gameOver(){
